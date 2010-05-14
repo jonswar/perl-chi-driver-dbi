@@ -1,5 +1,7 @@
 Revision history for CHI-Driver-DBI
 
+** denotes an incompatible change
+
 1.3  May 14, 2010
 
 - Move source to github
