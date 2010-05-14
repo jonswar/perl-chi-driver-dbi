@@ -2,20 +2,20 @@ Revision history for CHI-Driver-DBI
 
 ** denotes an incompatible change
 
-1.3  May 14, 2010
+1.21  May 14, 2010
 
 - Move source to github
 - Move test libs to CHI::Driver::DBI::t::* to match other driver distros
 - Switch to Module::Install
 
-1.2  May 26, 2009
+1.20  May 26, 2009
 
 - Depend on CHI 0.241, for fuller set of dependencies
 
-1.1  May 26, 2009
+1.10  May 26, 2009
 
 - Switch to Moose, to match CHI 0.23
 
-1.0  Mar 17, 2009
+1.00  Mar 17, 2009
 
 - Initial version
