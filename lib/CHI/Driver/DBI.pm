@@ -39,9 +39,6 @@ used when less reliable storage like memcached is not appropriate.  Also, the
 speed of simple lookups on MySQL when accessed over a local socket is very hard
 to beat.  DBI is fast.
 
-Note that this module is built on the Moose framework, just like the main CHI
-modules.
-
 =head1 ATTRIBUTES
 
 =over
@@ -268,8 +265,8 @@ sub get_namespaces { croak 'not supported' }
 
 =head1 Authors
 
-Original version by Justin DeVuyst.  Current version and maintenance by Perrin
-Harkins and Jonathan Swartz.
+Original version by Justin DeVuyst and Perrin Harkins. Currently maintained by
+Jonathan Swartz.
 
 =head1 COPYRIGHT & LICENSE
 
