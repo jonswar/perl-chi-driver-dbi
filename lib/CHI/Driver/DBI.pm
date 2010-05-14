@@ -8,7 +8,7 @@ use DBI::Const::GetInfoType;
 use Moose;
 use Carp qw(croak);
 
-our $VERSION = '1.21';
+our $VERSION = '1.22';
 
 # TODO:  For pg see "upsert" - http://www.postgresql.org/docs/current/static/plpgsql-control-structures.html#PLPGSQL-UPSERT-EXAMPLE
 
