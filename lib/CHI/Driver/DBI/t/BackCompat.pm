@@ -1,28 +1,24 @@
-package CHI::Driver::DBI::t::Base;
+package CHI::Driver::DBI::t::BackCompat;
 use strict;
 use warnings;
 
-use DBIx::Connector;
-use base qw(CHI::t::Driver);
-
-sub testing_driver_class    { 'CHI::Driver::DBI' }
-sub supports_get_namespaces { 0 }
+use base qw(CHI::Driver::DBI::t::Base);
 
 sub SKIP_CLASS {
     my $class = shift;
 
-    if ( not $class->db_conn ) {
+    if ( not $class->dbh ) {
         return "Unable to get a database connection";
     }
 
     return 0;
 }
 
-sub db_conn {
+sub dbh {
     my $self = shift;
 
     eval {
-        return DBIx::Connector->new(
+        return DBI->connect(
             $self->dsn,
             '', '',
             {
@@ -38,9 +34,19 @@ sub new_cache_options {
 
     return (
         $self->SUPER::new_cache_options,
-        db_conn      => $self->db_conn,
+        dbh          => $self->dbh,
         create_table => 1
     );
+}
+
+sub required_modules { return { 'DBD::SQLite' => undef } }
+
+sub dsn {
+    return 'dbi:SQLite:dbname=t/dbfile-2.db';
+}
+
+sub cleanup : Tests( shutdown ) {
+    unlink 't/dbfile-2.db';
 }
 
 1;
