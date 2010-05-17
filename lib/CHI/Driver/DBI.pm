@@ -70,12 +70,9 @@ around and set the dbh on each request after checking it with ping().
 
 =cut
 
-has 'db_conn'    => (
-    is       => 'ro',
-    isa      => 'DBIx::Connector',
-    required => 1,
-    handles  => [qw[ dbh ]]
-);
+has 'db_conn' => ( is => 'ro', isa => 'DBIx::Connector' );
+
+sub dbh { $_[0]->{_dbh} || $_[0]->db_conn->dbh }
 
 =item dbh_ro
 
@@ -84,14 +81,10 @@ master/slave RDBMS setups.
 
 =cut
 
-has 'db_conn_ro' => (
-    is        => 'ro',
-    isa       => 'DBIx::Connector',
-    predicate => 'has_dbh_ro',
-    handles   => {
-        dbh_ro => 'dbh'
-    },
-);
+has 'db_conn_ro' => ( is => 'ro', isa => 'DBIx::Connector', predicate => 'has_db_conn_ro' );
+
+sub has_dbh_ro { exists $_[0]->{_dbh_ro} || $_[0]->has_db_conn_ro }
+sub dbh_ro     { $_[0]->{_dbh_ro} || $_[0]->db_conn_ro->dbh }
 
 
 =item sql_strings
@@ -122,6 +115,14 @@ exists..." so it's generally harmless.
 
 sub BUILD {
     my ( $self, $args, ) = @_;
+
+    if ( exists $args->{dbh} ) {
+        $self->{_dbh} = $args->{dbh};
+    }
+
+    if ( exists $args->{dbh_ro} ) {
+        $self->{_dbh_ro} = $args->{dbh_ro};
+    }
 
     $self->sql_strings;
 
