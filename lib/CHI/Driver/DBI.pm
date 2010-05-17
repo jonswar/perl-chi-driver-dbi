@@ -3,7 +3,7 @@ package CHI::Driver::DBI;
 use strict;
 use warnings;
 
-use DBI;
+use DBIx::Connector;
 use DBI::Const::GetInfoType;
 use Moose;
 use Carp qw(croak);
@@ -70,7 +70,12 @@ around and set the dbh on each request after checking it with ping().
 
 =cut
 
-has 'dbh' => ( is => 'rw', isa => 'DBI::db', required => 1, );
+has 'db_conn'    => (
+    is       => 'ro',
+    isa      => 'DBIx::Connector',
+    required => 1,
+    handles  => [qw[ dbh ]]
+);
 
 =item dbh_ro
 
@@ -79,7 +84,15 @@ master/slave RDBMS setups.
 
 =cut
 
-has 'dbh_ro' => ( is => 'rw', isa => 'DBI::db', );
+has 'db_conn_ro' => (
+    is        => 'ro',
+    isa       => 'DBIx::Connector',
+    predicate => 'has_dbh_ro',
+    handles   => {
+        dbh_ro => 'dbh'
+    },
+);
+
 
 =item sql_strings
 
@@ -113,8 +126,8 @@ sub BUILD {
     $self->sql_strings;
 
     if ( $args->{create_table} ) {
-        $self->{dbh}->do( $self->{sql_strings}->{create} )
-          or croak $self->{dbh}->errstr;
+        $self->dbh->do( $self->sql_strings->{create} )
+          or croak $self->dbh->errstr;
     }
 
     return;
@@ -172,8 +185,8 @@ sub _build_sql_strings {
 sub fetch {
     my ( $self, $key, ) = @_;
 
-    my $dbh = $self->{dbh_ro} ? $self->{dbh_ro} : $self->{dbh};
-    my $sth = $dbh->prepare_cached( $self->{sql_strings}->{fetch} )
+    my $dbh = $self->has_dbh_ro ? $self->dbh_ro : $self->dbh;
+    my $sth = $dbh->prepare_cached( $self->sql_strings->{fetch} )
       or croak $dbh->errstr;
     $sth->execute($key) or croak $sth->errstr;
     my $results = $sth->fetchall_arrayref;
@@ -188,12 +201,12 @@ sub fetch {
 sub store {
     my ( $self, $key, $data, ) = @_;
 
-    my $sth = $self->{dbh}->prepare_cached( $self->{sql_strings}->{store} );
+    my $sth = $self->dbh->prepare_cached( $self->sql_strings->{store} );
     if ( not $sth->execute( $key, $data ) ) {
-        if ( $self->{sql_strings}->{store2} ) {
+        if ( $self->sql_strings->{store2} ) {
             my $sth =
-              $self->{dbh}->prepare_cached( $self->{sql_strings}->{store2} )
-              or croak $self->{dbh}->errstr;
+              $self->dbh->prepare_cached( $self->sql_strings->{store2} )
+              or croak $self->dbh->errstr;
             $sth->execute( $data, $key )
               or croak $sth->errstr;
         }
@@ -213,8 +226,8 @@ sub store {
 sub remove {
     my ( $self, $key, ) = @_;
 
-    my $sth = $self->dbh->prepare_cached( $self->{sql_strings}->{remove} )
-      or croak $self->{dbh}->errstr;
+    my $sth = $self->dbh->prepare_cached( $self->sql_strings->{remove} )
+      or croak $self->dbh->errstr;
     $sth->execute($key) or croak $sth->errstr;
     $sth->finish;
 
@@ -228,8 +241,8 @@ sub remove {
 sub clear {
     my ( $self, $key, ) = @_;
 
-    my $sth = $self->{dbh}->prepare_cached( $self->{sql_strings}->{clear} )
-      or croak $self->{dbh}->errstr;
+    my $sth = $self->dbh->prepare_cached( $self->sql_strings->{clear} )
+      or croak $self->dbh->errstr;
     $sth->execute() or croak $sth->errstr;
     $sth->finish();
 
@@ -243,8 +256,8 @@ sub clear {
 sub get_keys {
     my ( $self, ) = @_;
 
-    my $dbh = $self->{dbh_ro} ? $self->{dbh_ro} : $self->{dbh};
-    my $sth = $dbh->prepare_cached( $self->{sql_strings}->{get_keys} )
+    my $dbh = $self->has_dbh_ro ? $self->dbh_ro : $self->dbh;
+    my $sth = $dbh->prepare_cached( $self->sql_strings->{get_keys} )
       or croak $dbh->errstr;
     $sth->execute() or croak $sth->errstr;
     my $results = $sth->fetchall_arrayref( [0] );
