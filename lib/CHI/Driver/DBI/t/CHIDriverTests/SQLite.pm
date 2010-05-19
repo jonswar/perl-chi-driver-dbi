@@ -1,8 +1,8 @@
-package CHI::Driver::DBI::t::SQLite;
+package CHI::Driver::DBI::t::CHIDriverTests::SQLite;
 use strict;
 use warnings;
 
-use base qw(CHI::Driver::DBI::t::Base);
+use base qw(CHI::Driver::DBI::t::CHIDriverTests::Base);
 
 sub required_modules { return { 'DBD::SQLite' => undef } }
 
