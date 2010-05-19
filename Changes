@@ -4,7 +4,8 @@ Revision history for CHI-Driver-DBI
 
 1.22  May 19, 2010
 
-- Allow DBIx::Connection or database handle generators to be passed for dbh and dbh_ro
+- Allow DBIx::Connection or database handle generators to be passed for dbh and dbh_ro -
+  submitted by Stevan Little
 
 1.21  May 14, 2010
 
