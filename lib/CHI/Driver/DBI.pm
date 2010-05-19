@@ -3,7 +3,6 @@ package CHI::Driver::DBI;
 use strict;
 use warnings;
 
-use d;
 use DBI::Const::GetInfoType;
 use Moose;
 use Moose::Util::TypeConstraints;
@@ -14,10 +13,6 @@ our $VERSION = '1.22';
 # TODO:  For pg see "upsert" - http://www.postgresql.org/docs/current/static/plpgsql-control-structures.html#PLPGSQL-UPSERT-EXAMPLE
 
 extends 'CHI::Driver';
-
-# my $handle_type = subtype as 'Coderef';
-# my $dbixconnector_type = subtype as 'DBIx::Connector';
-# my $dbi_type = subtype as 'DBI::db';
 
 my $type = "CHI::Driver::DBI";
 
