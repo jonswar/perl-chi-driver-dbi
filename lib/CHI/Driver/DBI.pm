@@ -8,7 +8,7 @@ use Moose;
 use Moose::Util::TypeConstraints;
 use Carp qw(croak);
 
-our $VERSION = '1.23';
+our $VERSION = '1.24';
 
 # TODO:  For pg see "upsert" - http://www.postgresql.org/docs/current/static/plpgsql-control-structures.html#PLPGSQL-UPSERT-EXAMPLE
 
