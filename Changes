@@ -2,7 +2,12 @@ Revision history for CHI-Driver-DBI
 
 ** denotes an incompatible change
 
-1.24  May 22, 2010
+1.24  Mar 9, 2011
+
+- Reduce key length in auto-created table from 600 to 300, to prevent errors
+  when used with utf8 keys in mysql. Can always be overriden manually. RT #66479
+  (Doug Bell).
+- Migrate to Dist::Zilla
 
 1.23  May 22, 2010
 
