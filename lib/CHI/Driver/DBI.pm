@@ -205,6 +205,8 @@ used when less reliable storage like memcached is not appropriate.  Also, the
 speed of simple lookups on MySQL when accessed over a local socket is very hard
 to beat.  DBI is fast.
 
+=for readme stop
+
 =head1 SCHEMA
 
 Each namespace requires a table like this:
@@ -278,16 +280,11 @@ master/slave RDBMS setups.
 
 =back
 
+=for readme continue
+
 =head1 AUTHORS
 
 Original version by Justin DeVuyst and Perrin Harkins. Currently maintained by
 Jonathan Swartz.
-
-=head1 COPYRIGHT & LICENSE
-
-Copyright (C) Justin DeVuyst
-
-This program is free software; you can redistribute it and/or modify it under
-the same terms as Perl itself.
 
 =cut
