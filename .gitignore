@@ -16,6 +16,6 @@ cp.yml
 data
 inc
 pm_to_blib*
-releases
+release
 tmp
 wiki
