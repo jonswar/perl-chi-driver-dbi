@@ -4,7 +4,7 @@ Revision history for CHI-Driver-DBI
 
 1.25  Mar 10, 2011
 
-- Fix bad dzil release
+- Fix MANIFEST.SKIP
 
 1.24  Mar 9, 2011
 

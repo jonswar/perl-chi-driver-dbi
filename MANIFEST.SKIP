@@ -1,10 +1,24 @@
+^bin
 ^cp\.yml
 ^data
+^depends
 ^dist
+^docs
+^etc/bench/data
+^etc/bench/results.dat
 ^git
 ^inc/\.author
+^lib/Pod
+^lib/Test
+^localcpan
+^misc
+^perlcriticrc
 ^perltidyrc
+^release
 ^tmp
+^weaver.ini
+^wiki
+^README.DEVELOPERS
 ^TODO
 ^VERSION
 
