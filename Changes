@@ -2,7 +2,9 @@ Revision history for CHI-Driver-DBI
 
 ** denotes an incompatible change
 
-1.25  Mar 9, 2011
+1.25  Mar 10, 2011
+
+- Fix bad dzil release
 
 1.24  Mar 9, 2011
 
