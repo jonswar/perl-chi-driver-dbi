@@ -28,146 +28,141 @@ coerce "$type.DBIHandleGenerator" => from "$type.DBIHandle" => via {
 };
 
 has 'dbh'          => ( is => 'ro', isa => "$type.DBIHandleGenerator", coerce => 1 );
-has 'dbh_ro' => (
-has 'table_prefix' => ( is => 'rw', isa => 'Str', default => 'chi_', );
-is          => 'ro',
-  isa       => "$type.DBIHandleGenerator",
-  predicate => 'has_dbh_ro',
-  coerce    => 1, );
-
-has 'sql_strings' => ( is => 'rw', isa => 'HashRef', lazy_build => 1, );
+has 'dbh_ro'       => ( is => 'ro', isa => "$type.DBIHandleGenerator", predicate => 'has_dbh_ro', coerce => 1 );
+has 'sql_strings'  => ( is => 'rw', isa => 'HashRef', lazy_build => 1 );
+has 'table_prefix' => ( is => 'rw', isa => 'Str', default => 'chi_' );
 
 __PACKAGE__->meta->make_immutable;
 
 sub BUILD {
-      my ( $self, $args ) = @_;
+    my ( $self, $args ) = @_;
 
-      my $dbh = $self->dbh->();
+    my $dbh = $self->dbh->();
 
-      $self->sql_strings;
+    $self->sql_strings;
 
-      if ( $args->{create_table} ) {
-          $dbh->do( $self->sql_strings->{create} )
-            or croak $dbh->errstr;
-      }
+    if ( $args->{create_table} ) {
+        $dbh->do( $self->sql_strings->{create} )
+          or croak $dbh->errstr;
+    }
 
-      return;
+    return;
 }
 
 sub _table {
-      my ( $self, ) = @_;
+    my ( $self, ) = @_;
 
-      return $self->table_prefix() . $self->namespace();
+    return $self->table_prefix() . $self->namespace();
 }
 
 sub _build_sql_strings {
-      my ( $self, ) = @_;
+    my ( $self, ) = @_;
 
-      my $dbh     = $self->dbh->();
-      my $table   = $dbh->quote_identifier( $self->_table );
-      my $value   = $dbh->quote_identifier('value');
-      my $key     = $dbh->quote_identifier('key');
-      my $db_name = $dbh->get_info( $GetInfoType{SQL_DBMS_NAME} );
+    my $dbh     = $self->dbh->();
+    my $table   = $dbh->quote_identifier( $self->_table );
+    my $value   = $dbh->quote_identifier('value');
+    my $key     = $dbh->quote_identifier('key');
+    my $db_name = $dbh->get_info( $GetInfoType{SQL_DBMS_NAME} );
 
-      my $strings = {
-          fetch    => "SELECT $value FROM $table WHERE $key = ?",
-          store    => "INSERT INTO $table ( $key, $value ) VALUES ( ?, ? )",
-          store2   => "UPDATE $table SET $value = ? WHERE $key = ?",
-          remove   => "DELETE FROM $table WHERE $key = ?",
-          clear    => "DELETE FROM $table",
-          get_keys => "SELECT DISTINCT $key FROM $table",
-          create   => "CREATE TABLE IF NOT EXISTS $table ("
-            . " $key VARCHAR( 300 ), $value TEXT,"
-            . " PRIMARY KEY ( $key ) )",
-      };
+    my $strings = {
+        fetch    => "SELECT $value FROM $table WHERE $key = ?",
+        store    => "INSERT INTO $table ( $key, $value ) VALUES ( ?, ? )",
+        store2   => "UPDATE $table SET $value = ? WHERE $key = ?",
+        remove   => "DELETE FROM $table WHERE $key = ?",
+        clear    => "DELETE FROM $table",
+        get_keys => "SELECT DISTINCT $key FROM $table",
+        create   => "CREATE TABLE IF NOT EXISTS $table ("
+          . " $key VARCHAR( 300 ), $value TEXT,"
+          . " PRIMARY KEY ( $key ) )",
+    };
 
-      if ( $db_name eq 'MySQL' ) {
-          $strings->{store} =
-              "INSERT INTO $table"
-            . " ( $key, $value )"
-            . " VALUES ( ?, ? )"
-            . " ON DUPLICATE KEY UPDATE $value=VALUES($value)";
-          delete $strings->{store2};
-      }
-      elsif ( $db_name eq 'SQLite' ) {
-          $strings->{store} =
-              "INSERT OR REPLACE INTO $table"
-            . " ( $key, $value )"
-            . " values ( ?, ? )";
-          delete $strings->{store2};
-      }
+    if ( $db_name eq 'MySQL' ) {
+        $strings->{store} =
+            "INSERT INTO $table"
+          . " ( $key, $value )"
+          . " VALUES ( ?, ? )"
+          . " ON DUPLICATE KEY UPDATE $value=VALUES($value)";
+        delete $strings->{store2};
+    }
+    elsif ( $db_name eq 'SQLite' ) {
+        $strings->{store} =
+            "INSERT OR REPLACE INTO $table"
+          . " ( $key, $value )"
+          . " values ( ?, ? )";
+        delete $strings->{store2};
+    }
 
-      return $strings;
+    return $strings;
 }
 
 sub fetch {
-      my ( $self, $key, ) = @_;
+    my ( $self, $key, ) = @_;
 
-      my $dbh = $self->has_dbh_ro ? $self->dbh_ro->() : $self->dbh->();
-      my $sth = $dbh->prepare_cached( $self->sql_strings->{fetch} )
-        or croak $dbh->errstr;
-      $sth->execute($key) or croak $sth->errstr;
-      my $results = $sth->fetchall_arrayref;
+    my $dbh = $self->has_dbh_ro ? $self->dbh_ro->() : $self->dbh->();
+    my $sth = $dbh->prepare_cached( $self->sql_strings->{fetch} )
+      or croak $dbh->errstr;
+    $sth->execute($key) or croak $sth->errstr;
+    my $results = $sth->fetchall_arrayref;
 
-      return $results->[0]->[0];
+    return $results->[0]->[0];
 }
 
 sub store {
-      my ( $self, $key, $data, ) = @_;
+    my ( $self, $key, $data, ) = @_;
 
-      my $dbh = $self->dbh->();
-      my $sth = $dbh->prepare_cached( $self->sql_strings->{store} );
-      if ( not $sth->execute( $key, $data ) ) {
-          if ( $self->sql_strings->{store2} ) {
-              my $sth = $dbh->prepare_cached( $self->sql_strings->{store2} )
-                or croak $dbh->errstr;
-              $sth->execute( $data, $key )
-                or croak $sth->errstr;
-          }
-          else {
-              croak $sth->errstr;
-          }
-      }
-      $sth->finish;
+    my $dbh = $self->dbh->();
+    my $sth = $dbh->prepare_cached( $self->sql_strings->{store} );
+    if ( not $sth->execute( $key, $data ) ) {
+        if ( $self->sql_strings->{store2} ) {
+            my $sth = $dbh->prepare_cached( $self->sql_strings->{store2} )
+              or croak $dbh->errstr;
+            $sth->execute( $data, $key )
+              or croak $sth->errstr;
+        }
+        else {
+            croak $sth->errstr;
+        }
+    }
+    $sth->finish;
 
-      return;
+    return;
 }
 
 sub remove {
-      my ( $self, $key, ) = @_;
+    my ( $self, $key, ) = @_;
 
-      my $dbh = $self->dbh->();
-      my $sth = $dbh->prepare_cached( $self->sql_strings->{remove} )
-        or croak $dbh->errstr;
-      $sth->execute($key) or croak $sth->errstr;
-      $sth->finish;
+    my $dbh = $self->dbh->();
+    my $sth = $dbh->prepare_cached( $self->sql_strings->{remove} )
+      or croak $dbh->errstr;
+    $sth->execute($key) or croak $sth->errstr;
+    $sth->finish;
 
-      return;
+    return;
 }
 
 sub clear {
-      my ( $self, $key, ) = @_;
+    my ( $self, $key, ) = @_;
 
-      my $dbh = $self->dbh->();
-      my $sth = $dbh->prepare_cached( $self->sql_strings->{clear} )
-        or croak $dbh->errstr;
-      $sth->execute() or croak $sth->errstr;
-      $sth->finish();
+    my $dbh = $self->dbh->();
+    my $sth = $dbh->prepare_cached( $self->sql_strings->{clear} )
+      or croak $dbh->errstr;
+    $sth->execute() or croak $sth->errstr;
+    $sth->finish();
 
-      return;
+    return;
 }
 
 sub get_keys {
-      my ( $self, ) = @_;
+    my ( $self, ) = @_;
 
-      my $dbh = $self->has_dbh_ro ? $self->dbh_ro->() : $self->dbh->();
-      my $sth = $dbh->prepare_cached( $self->sql_strings->{get_keys} )
-        or croak $dbh->errstr;
-      $sth->execute() or croak $sth->errstr;
-      my $results = $sth->fetchall_arrayref( [0] );
-      $_ = $_->[0] for @{$results};
+    my $dbh = $self->has_dbh_ro ? $self->dbh_ro->() : $self->dbh->();
+    my $sth = $dbh->prepare_cached( $self->sql_strings->{get_keys} )
+      or croak $dbh->errstr;
+    $sth->execute() or croak $sth->errstr;
+    my $results = $sth->fetchall_arrayref( [0] );
+    $_ = $_->[0] for @{$results};
 
-      return @{$results};
+    return @{$results};
 }
 
 sub get_namespaces { croak 'not supported' }
