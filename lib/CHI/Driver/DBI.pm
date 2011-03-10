@@ -218,7 +218,8 @@ Each namespace requires a table like this:
 The size of the key column depends on how large you want keys to be and may be
 limited by the maximum size of an indexed column in your database.
 
-The driver will attempt to create the table for you if you pass
+The driver will try to create an appropriate table for you if you pass
+C<create_table> to the constructor.
 
 =head1 CONSTRUCTOR PARAMETERS
 
