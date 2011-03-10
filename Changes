@@ -2,6 +2,8 @@ Revision history for CHI-Driver-DBI
 
 ** denotes an incompatible change
 
+1.26  Mar 10, 2011
+
 1.25  Mar 10, 2011
 
 - Fix various issues from dzil conversion
