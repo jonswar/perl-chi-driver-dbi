@@ -266,8 +266,8 @@ the cache will be stored in a table called C<chi_Default>.
 =item table_prefix
 
 This is the prefix that is used when building a table name.  If you want to
-just use the namespace as a literal table name, set this to undef.  Defaults to
-C<chi_>.
+just use the namespace as a literal table name, set this to the empty string. 
+Defaults to C<chi_>.
 
 =item dbh
 

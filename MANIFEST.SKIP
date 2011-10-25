@@ -9,8 +9,6 @@
 ^git
 ^htdocs
 ^inc/\.author
-^lib/Pod
-^lib/Test
 ^localcpan
 ^misc
 ^perlcriticrc
