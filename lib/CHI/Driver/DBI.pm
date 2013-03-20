@@ -28,6 +28,7 @@ coerce "$type.DBIHandleGenerator" => from "$type.DBIHandle" => via {
 };
 
 has 'dbh'          => ( is => 'ro', isa => "$type.DBIHandleGenerator", coerce => 1 );
+has 'db_name'      => ( is => 'rw', isa => 'Str' );
 has 'dbh_ro'       => ( is => 'ro', isa => "$type.DBIHandleGenerator", predicate => 'has_dbh_ro', coerce => 1 );
 has 'sql_strings'  => ( is => 'rw', isa => 'HashRef', lazy_build => 1 );
 has 'table_prefix' => ( is => 'rw', isa => 'Str', default => 'chi_' );
@@ -39,6 +40,7 @@ sub BUILD {
 
     my $dbh = $self->dbh->();
 
+    $self->db_name( $dbh->get_info( $GetInfoType{SQL_DBMS_NAME} ) );
     $self->sql_strings;
 
     if ( $args->{create_table} ) {
@@ -62,7 +64,6 @@ sub _build_sql_strings {
     my $table   = $dbh->quote_identifier( $self->_table );
     my $value   = $dbh->quote_identifier('value');
     my $key     = $dbh->quote_identifier('key');
-    my $db_name = $dbh->get_info( $GetInfoType{SQL_DBMS_NAME} );
 
     my $strings = {
         fetch    => "SELECT $value FROM $table WHERE $key = ?",
@@ -76,7 +77,7 @@ sub _build_sql_strings {
           . " PRIMARY KEY ( $key ) )",
     };
 
-    if ( $db_name eq 'MySQL' ) {
+    if ( $self->db_name eq 'MySQL' ) {
         $strings->{store} =
             "INSERT INTO $table"
           . " ( $key, $value )"
@@ -84,12 +85,18 @@ sub _build_sql_strings {
           . " ON DUPLICATE KEY UPDATE $value=VALUES($value)";
         delete $strings->{store2};
     }
-    elsif ( $db_name eq 'SQLite' ) {
+    elsif ( $self->db_name eq 'SQLite' ) {
         $strings->{store} =
             "INSERT OR REPLACE INTO $table"
           . " ( $key, $value )"
           . " values ( ?, ? )";
         delete $strings->{store2};
+    }
+    elsif ( $self->db_name eq 'PostgreSQL' ) {
+        $strings->{create} =
+            "CREATE TABLE IF NOT EXISTS $table ("
+          . " $key BYTEA, $value BYTEA,"
+          . " PRIMARY KEY ( $key ) )";
     }
 
     return $strings;
@@ -101,6 +108,10 @@ sub fetch {
     my $dbh = $self->has_dbh_ro ? $self->dbh_ro->() : $self->dbh->();
     my $sth = $dbh->prepare_cached( $self->sql_strings->{fetch} )
       or croak $dbh->errstr;
+    if ( $self->db_name eq 'PostgreSQL' ) {
+        use DBD::Pg qw(:pg_types);
+        $sth->bind_param( 1, undef, { pg_type => PG_BYTEA } );
+    }
     $sth->execute($key) or croak $sth->errstr;
     my $results = $sth->fetchall_arrayref;
 
@@ -112,10 +123,20 @@ sub store {
 
     my $dbh = $self->dbh->();
     my $sth = $dbh->prepare_cached( $self->sql_strings->{store} );
+    if ( $self->db_name eq 'PostgreSQL' ) {
+        use DBD::Pg qw(:pg_types);
+        $sth->bind_param( 1, undef, { pg_type => PG_BYTEA } );
+        $sth->bind_param( 2, undef, { pg_type => PG_BYTEA } );
+    }
     if ( not $sth->execute( $key, $data ) ) {
         if ( $self->sql_strings->{store2} ) {
             my $sth = $dbh->prepare_cached( $self->sql_strings->{store2} )
               or croak $dbh->errstr;
+            if ( $self->db_name eq 'PostgreSQL' ) {
+                use DBD::Pg qw(:pg_types);
+                $sth->bind_param( 1, undef, { pg_type => PG_BYTEA } );
+                $sth->bind_param( 2, undef, { pg_type => PG_BYTEA } );
+            }
             $sth->execute( $data, $key )
               or croak $sth->errstr;
         }
@@ -134,6 +155,10 @@ sub remove {
     my $dbh = $self->dbh->();
     my $sth = $dbh->prepare_cached( $self->sql_strings->{remove} )
       or croak $dbh->errstr;
+    if ( $self->db_name eq 'PostgreSQL' ) {
+        use DBD::Pg qw(:pg_types);
+        $sth->bind_param( 1, undef, { pg_type => PG_BYTEA } );
+    }
     $sth->execute($key) or croak $sth->errstr;
     $sth->finish;
 
