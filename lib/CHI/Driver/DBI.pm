@@ -131,8 +131,10 @@ sub store {
             my $sth = $dbh->prepare_cached( $self->sql_strings->{store2} )
               or croak $dbh->errstr;
             if ( $self->db_name eq 'PostgreSQL' ) {
-                $sth->bind_param( 1, undef, { pg_type => DBD::Pg::PG_BYTEA() } );
-                $sth->bind_param( 2, undef, { pg_type => DBD::Pg::PG_BYTEA() } );
+                $sth->bind_param( 1, undef,
+                    { pg_type => DBD::Pg::PG_BYTEA() } );
+                $sth->bind_param( 2, undef,
+                    { pg_type => DBD::Pg::PG_BYTEA() } );
             }
             $sth->execute( $data, $key )
               or croak $sth->errstr;
