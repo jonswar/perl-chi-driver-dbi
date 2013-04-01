@@ -109,8 +109,7 @@ sub fetch {
     my $sth = $dbh->prepare_cached( $self->sql_strings->{fetch} )
       or croak $dbh->errstr;
     if ( $self->db_name eq 'PostgreSQL' ) {
-        use DBD::Pg qw(:pg_types);
-        $sth->bind_param( 1, undef, { pg_type => PG_BYTEA } );
+        $sth->bind_param( 1, undef, { pg_type => DBD::Pg::PG_BYTEA() } );
     }
     $sth->execute($key) or croak $sth->errstr;
     my $results = $sth->fetchall_arrayref;
@@ -124,18 +123,16 @@ sub store {
     my $dbh = $self->dbh->();
     my $sth = $dbh->prepare_cached( $self->sql_strings->{store} );
     if ( $self->db_name eq 'PostgreSQL' ) {
-        use DBD::Pg qw(:pg_types);
-        $sth->bind_param( 1, undef, { pg_type => PG_BYTEA } );
-        $sth->bind_param( 2, undef, { pg_type => PG_BYTEA } );
+        $sth->bind_param( 1, undef, { pg_type => DBD::Pg::PG_BYTEA() } );
+        $sth->bind_param( 2, undef, { pg_type => DBD::Pg::PG_BYTEA() } );
     }
     if ( not $sth->execute( $key, $data ) ) {
         if ( $self->sql_strings->{store2} ) {
             my $sth = $dbh->prepare_cached( $self->sql_strings->{store2} )
               or croak $dbh->errstr;
             if ( $self->db_name eq 'PostgreSQL' ) {
-                use DBD::Pg qw(:pg_types);
-                $sth->bind_param( 1, undef, { pg_type => PG_BYTEA } );
-                $sth->bind_param( 2, undef, { pg_type => PG_BYTEA } );
+                $sth->bind_param( 1, undef, { pg_type => DBD::Pg::PG_BYTEA() } );
+                $sth->bind_param( 2, undef, { pg_type => DBD::Pg::PG_BYTEA() } );
             }
             $sth->execute( $data, $key )
               or croak $sth->errstr;
@@ -156,8 +153,7 @@ sub remove {
     my $sth = $dbh->prepare_cached( $self->sql_strings->{remove} )
       or croak $dbh->errstr;
     if ( $self->db_name eq 'PostgreSQL' ) {
-        use DBD::Pg qw(:pg_types);
-        $sth->bind_param( 1, undef, { pg_type => PG_BYTEA } );
+        $sth->bind_param( 1, undef, { pg_type => DBD::Pg::PG_BYTEA() } );
     }
     $sth->execute($key) or croak $sth->errstr;
     $sth->finish;
