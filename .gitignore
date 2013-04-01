@@ -1,5 +1,6 @@
 *.tar.gz
 .lwpcookies
+.tidyall.d
 Build
 MANIFEST
 MANIFEST.bak
