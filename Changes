@@ -2,6 +2,8 @@ Revision history for CHI-Driver-DBI
 
 ** denotes an incompatible change
 
+1.27  Apr 1, 2013
+
 1.26  Apr 1, 2013
 
 - Improve postgres support - https://github.com/jonswar/perl-chi-driver-dbi/pull/2 (chinaxing)
