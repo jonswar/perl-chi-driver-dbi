@@ -27,8 +27,8 @@ coerce "$type.DBIHandleGenerator" => from "$type.DBIHandle" => via {
     sub { $dbh }
 };
 
-has 'dbh'          => ( is => 'ro', isa => "$type.DBIHandleGenerator", coerce => 1 );
 has 'db_name'      => ( is => 'rw', isa => 'Str' );
+has 'dbh'          => ( is => 'ro', isa => "$type.DBIHandleGenerator", coerce => 1 );
 has 'dbh_ro'       => ( is => 'ro', isa => "$type.DBIHandleGenerator", predicate => 'has_dbh_ro', coerce => 1 );
 has 'sql_strings'  => ( is => 'rw', isa => 'HashRef', lazy_build => 1 );
 has 'table_prefix' => ( is => 'rw', isa => 'Str', default => 'chi_' );
@@ -60,10 +60,10 @@ sub _table {
 sub _build_sql_strings {
     my ( $self, ) = @_;
 
-    my $dbh     = $self->dbh->();
-    my $table   = $dbh->quote_identifier( $self->_table );
-    my $value   = $dbh->quote_identifier('value');
-    my $key     = $dbh->quote_identifier('key');
+    my $dbh   = $self->dbh->();
+    my $table = $dbh->quote_identifier( $self->_table );
+    my $value = $dbh->quote_identifier('value');
+    my $key   = $dbh->quote_identifier('key');
 
     my $strings = {
         fetch    => "SELECT $value FROM $table WHERE $key = ?",

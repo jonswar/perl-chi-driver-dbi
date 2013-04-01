@@ -1,5 +1,5 @@
 package CHI::Driver::DBI::t::CHIDriverTests::Pg;
-use strict; 
+use strict;
 use warnings;
 
 use base qw(CHI::Driver::DBI::t::CHIDriverTests::Base);
