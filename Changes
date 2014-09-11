@@ -2,7 +2,9 @@ Revision history for CHI-Driver-DBI
 
 ** denotes an incompatible change
 
-1.27  Apr 1, 2013
+1.27  Sep 11, 2014
+
+- specifically depend on Moose, until such time as this is converted to Moo
 
 1.26  Apr 1, 2013
 
