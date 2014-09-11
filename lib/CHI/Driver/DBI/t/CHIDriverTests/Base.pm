@@ -67,4 +67,6 @@ sub test_with_dbi_generator : Tests(1) {
     is( $cache->get('foo'), $t );
 }
 
+sub test_multiple_processes { }
+
 1;
