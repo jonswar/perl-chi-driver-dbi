@@ -32,6 +32,7 @@ has 'dbh'          => ( is => 'ro', isa => "$type.DBIHandleGenerator", coerce =>
 has 'dbh_ro'       => ( is => 'ro', isa => "$type.DBIHandleGenerator", predicate => 'has_dbh_ro', coerce => 1 );
 has 'sql_strings'  => ( is => 'rw', isa => 'HashRef', lazy_build => 1 );
 has 'table_prefix' => ( is => 'rw', isa => 'Str', default => 'chi_' );
+has 'truncate_on_clear' => ( is => 'rw', isa => 'Bool', default => 0 );
 
 __PACKAGE__->meta->make_immutable;
 
@@ -59,6 +60,7 @@ sub _table {
 
 sub _build_sql_strings {
     my ( $self, ) = @_;
+    my $clear_statment = $self->truncate_on_clear ? "TRUNCATE TABLE" : "DELETE FROM";
 
     my $dbh   = $self->dbh->();
     my $table = $dbh->quote_identifier( $self->_table );
@@ -70,7 +72,7 @@ sub _build_sql_strings {
         store    => "INSERT INTO $table ( $key, $value ) VALUES ( ?, ? )",
         store2   => "UPDATE $table SET $value = ? WHERE $key = ?",
         remove   => "DELETE FROM $table WHERE $key = ?",
-        clear    => "DELETE FROM $table",
+        clear    => "$clear_statment $table",
         get_keys => "SELECT DISTINCT $key FROM $table",
         create   => "CREATE TABLE IF NOT EXISTS $table ("
           . " $key VARCHAR( 300 ), $value TEXT,"
@@ -249,6 +251,11 @@ C<create_table> to the constructor.
 =head1 CONSTRUCTOR PARAMETERS
 
 =over
+
+=item truncate_on_clear
+
+Boolean. If true, will use TRUNCATE TABLE <table_name> instead of 
+DELETE FROM <table_name> when clearing the table. Defaults to false.
 
 =item create_table
 
