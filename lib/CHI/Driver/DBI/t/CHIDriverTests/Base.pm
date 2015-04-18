@@ -29,6 +29,7 @@ sub dbh {
             {
                 RaiseError => 0,
                 PrintError => 0,
+                PrintWarn => 0,
             }
         );
     };
