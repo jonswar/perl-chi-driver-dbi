@@ -108,6 +108,8 @@ sub fetch {
     my $dbh = $self->has_dbh_ro ? $self->dbh_ro->() : $self->dbh->();
     my $sth = $dbh->prepare_cached( $self->sql_strings->{fetch} )
       or croak $dbh->errstr;
+    $sth->{RaiseError} = 0; # This code assumes RaiseError = 0
+
     if ( $self->db_name eq 'PostgreSQL' ) {
         $sth->bind_param( 1, undef, { pg_type => DBD::Pg::PG_BYTEA() } );
     }
@@ -122,6 +124,8 @@ sub store {
 
     my $dbh = $self->dbh->();
     my $sth = $dbh->prepare_cached( $self->sql_strings->{store} );
+    $sth->{RaiseError} = 0; # This code assumes RaiseError = 0
+
     if ( $self->db_name eq 'PostgreSQL' ) {
         $sth->bind_param( 1, undef, { pg_type => DBD::Pg::PG_BYTEA() } );
         $sth->bind_param( 2, undef, { pg_type => DBD::Pg::PG_BYTEA() } );
@@ -131,6 +135,7 @@ sub store {
             my $sth = $dbh->prepare_cached( $self->sql_strings->{store2} )
               or croak $dbh->errstr;
             if ( $self->db_name eq 'PostgreSQL' ) {
+                $sth->{RaiseError} = 0;
                 $sth->bind_param( 1, undef,
                     { pg_type => DBD::Pg::PG_BYTEA() } );
                 $sth->bind_param( 2, undef,
@@ -154,6 +159,8 @@ sub remove {
     my $dbh = $self->dbh->();
     my $sth = $dbh->prepare_cached( $self->sql_strings->{remove} )
       or croak $dbh->errstr;
+    $sth->{RaiseError} = 0; # This code assumes RaiseError = 0
+
     if ( $self->db_name eq 'PostgreSQL' ) {
         $sth->bind_param( 1, undef, { pg_type => DBD::Pg::PG_BYTEA() } );
     }
@@ -169,6 +176,8 @@ sub clear {
     my $dbh = $self->dbh->();
     my $sth = $dbh->prepare_cached( $self->sql_strings->{clear} )
       or croak $dbh->errstr;
+    $sth->{RaiseError} = 0; # This code assumes RaiseError = 0
+
     $sth->execute() or croak $sth->errstr;
     $sth->finish();
 
@@ -181,6 +190,8 @@ sub get_keys {
     my $dbh = $self->has_dbh_ro ? $self->dbh_ro->() : $self->dbh->();
     my $sth = $dbh->prepare_cached( $self->sql_strings->{get_keys} )
       or croak $dbh->errstr;
+    $sth->{RaiseError} = 0; # This code assumes RaiseError = 0
+
     $sth->execute() or croak $sth->errstr;
     my $results = $sth->fetchall_arrayref( [0] );
     $_ = $_->[0] for @{$results};
