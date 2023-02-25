@@ -1,6 +1,7 @@
 #!perl -T
 
 use Test::More tests => 1;
+use DBI;
 
 BEGIN {
     use_ok('CHI::Driver::DBI');

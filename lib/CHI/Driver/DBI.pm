@@ -77,7 +77,7 @@ sub _build_sql_strings {
           . " PRIMARY KEY ( $key ) )",
     };
 
-    if ( $self->db_name eq 'MySQL' ) {
+    if ( $self->db_name eq 'MySQL' || $self->db_name eq 'MariaDB' ) {
         $strings->{store} =
             "INSERT INTO $table"
           . " ( $key, $value )"
@@ -123,20 +123,30 @@ sub store {
     my $dbh = $self->dbh->();
     my $sth = $dbh->prepare_cached( $self->sql_strings->{store} );
     if ( $self->db_name eq 'PostgreSQL' ) {
-        $sth->bind_param( 1, undef, { pg_type => DBD::Pg::PG_BYTEA() } );
-        $sth->bind_param( 2, undef, { pg_type => DBD::Pg::PG_BYTEA() } );
+        $sth->bind_param( 1, $key, { pg_type => DBD::Pg::PG_BYTEA() } );
+        $sth->bind_param( 2, $data, { pg_type => DBD::Pg::PG_BYTEA() } );
     }
-    if ( not $sth->execute( $key, $data ) ) {
+    else {
+        # MySQL, MariaDB and SQLite can use normal DBI
+        $sth->bind_param( 1, $key );
+        $sth->bind_param( 2, $data, DBI::SQL_BINARY );
+    }
+    if ( not $sth->execute() ) {
         if ( $self->sql_strings->{store2} ) {
             my $sth = $dbh->prepare_cached( $self->sql_strings->{store2} )
               or croak $dbh->errstr;
             if ( $self->db_name eq 'PostgreSQL' ) {
-                $sth->bind_param( 1, undef,
+                $sth->bind_param( 1, $key,
                     { pg_type => DBD::Pg::PG_BYTEA() } );
-                $sth->bind_param( 2, undef,
+                $sth->bind_param( 2, $data,
                     { pg_type => DBD::Pg::PG_BYTEA() } );
             }
-            $sth->execute( $data, $key )
+            else {
+                $sth->bind_param( 1, $key );
+                $sth->bind_param( 2, $data,
+                    DBI::SQL_BINARY );
+            }
+            $sth->execute()
               or croak $sth->errstr;
         }
         else {
